@@ -1,0 +1,12 @@
+# This repository is public. Exports, downloads and protected copies contain conversations:
+# never commit them. Tests generate their own invented data.
+*.csv
+*.tsv
+*.xlsx
+*-protected-*.html
+*-evaluators.json
+evaluators.json
+out/
+.DS_Store
+node_modules/
+__pycache__/

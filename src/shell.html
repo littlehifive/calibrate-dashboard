@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Turn a Calibrate annotation export into a rater-agreement dashboard and record the experts' consensus. Runs entirely in your browser.">
+<link rel="icon" href="data:,">
+<title>Calibrate Agreement Review</title>
+<style>
+/*__CSS__*/
+</style>
+</head>
+<body>
+<!--__PRELOAD__-->
+<div id="start" class="start">
+  <div class="start-card">
+    <div>
+      <div class="eyebrow">Calibrate · expert review</div>
+      <h1>Agreement review</h1>
+      <p class="lede">Turn the items CSV from a Calibrate annotation task into a rater-agreement dashboard, then record what the experts decide about each conflict.</p>
+    </div>
+    <label class="drop" id="drop" tabindex="0">
+      <b>Drop the items CSV here, or click to choose it</b>
+      <span class="muted">Add the task’s <span class="mono">evaluators.json</span> too if you have it (optional). To continue earlier notes, drop the CSV you downloaded from this page.</span>
+      <input id="file" type="file" accept=".csv,.json,text/csv,application/json" multiple hidden>
+    </label>
+    <div id="start-error" class="err" role="alert" hidden></div>
+    <div class="privacy">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1a4 4 0 0 0-4 4v2H3.5A1.5 1.5 0 0 0 2 8.5v5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 12.5 7H12V5a4 4 0 0 0-4-4Zm-2.5 6V5a2.5 2.5 0 0 1 5 0v2h-5Z"/></svg>
+      <span>The file is read inside this browser and never uploaded. This page is not allowed to connect to the internet at all, so conversations stay on your computer.</span>
+    </div>
+    <ol class="steps">
+      <li>In Calibrate, open the annotation task and download the items export (one row per conversation).</li>
+      <li>Drop it above. The raters, questions and AI evaluator are found from the column names.</li>
+      <li>Review the conflicts together. One person records the consensus in each conversation.</li>
+      <li>Download the CSV with consensus: the original file plus consensus columns. Share a read-only view as a password-protected file.</li>
+    </ol>
+    <div class="actions"><button class="btn" id="demo" type="button">Try it with invented data</button></div>
+    <p class="start-foot">Works offline: save this page (Ctrl/Cmd+S) and open the file later.</p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="title-block">
+        <h1 id="title"></h1>
+        <div class="sub" id="subtitle"></div>
+      </div>
+      <div class="actions" id="actions">
+        <span class="ro-tag" id="ro-tag" hidden>Read-only copy</span>
+        <button class="btn primary" id="act-download" type="button" title="The original CSV plus consensus columns">Download CSV<span class="count" id="pending" hidden></span></button>
+        <button class="btn" id="act-protect" type="button" title="A read-only, password-protected copy to share">Protected copy</button>
+        <button class="btn" id="act-setup" type="button" title="Names of raters, questions and answer options">Setup</button>
+        <button class="btn" id="act-open" type="button">Open another file</button>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:8px">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-overview" aria-selected="true" data-tab="overview">Agreement overview</button>
+        <button role="tab" id="tab-conversations" aria-selected="false" data-tab="conversations">Conversations</button>
+        <button role="tab" id="tab-consensus" aria-selected="false" data-tab="consensus">Consensus</button>
+      </div>
+      <div class="controls">
+        <div class="control" id="ref-control" title="Which raters form the majority a rating is compared against">
+          <span>Majority from</span>
+          <div class="seg" id="ref-seg">
+            <button aria-pressed="true" data-ref="humans">Humans only</button>
+            <button aria-pressed="false" data-ref="all">Humans + AI</button>
+          </div>
+        </div>
+        <div class="control" id="cat-control" title="Compare the answer options as-is, or only whether the answer was the first option">
+          <span>Options</span>
+          <div class="seg" id="cat-seg">
+            <button aria-pressed="true" data-cat="strict">As rated</button>
+            <button aria-pressed="false" data-cat="yes" id="cat-yes-btn">First option vs. rest</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="wrap banners" id="banners"></div>
+  <main class="wrap">
+    <div id="view-overview"></div>
+    <div id="view-conversations" hidden>
+      <div class="convs">
+        <section class="panel convlist" id="convlist"></section>
+        <div class="detail" id="detail"></div>
+      </div>
+    </div>
+    <div id="view-consensus" hidden></div>
+    <div id="view-setup" hidden></div>
+  </main>
+</div>
+<div id="tip" hidden></div>
+
+<dialog id="dlg-protect">
+  <form method="dialog" id="protect-form">
+    <h2>Password-protected copy</h2>
+    <p>Saves one HTML file with this dashboard and the consensus notes, read-only, encrypted with a password. Share it through a restricted folder; people download it and open it in a browser. Send the password through a different channel.</p>
+    <label>Password (at least 10 characters; a short phrase works well)
+      <input id="pw1" type="password" autocomplete="new-password" minlength="10" required>
+    </label>
+    <label>Repeat the password
+      <input id="pw2" type="password" autocomplete="new-password" minlength="10" required>
+    </label>
+    <div id="protect-status" class="muted" role="status" aria-live="polite"></div>
+    <div class="row">
+      <button class="btn" value="cancel" formnovalidate type="submit">Cancel</button>
+      <button class="btn primary" id="protect-go" value="go" type="submit">Encrypt and download</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="application/json" id="unlock-template">"__UNLOCK__"</script>
+<script>
+/*__JS__*/
+</script>
+</body>
+</html>
