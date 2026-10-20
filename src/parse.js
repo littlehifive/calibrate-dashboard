@@ -95,7 +95,7 @@
     header.forEach((h, i) => { if (!(h in idx)) idx[h] = i; });
     const missing = REQUIRED.filter(c => !(c in idx));
     if (missing.length) {
-      return { error: 'This file has no ' + missing.map(c => '“' + c + '”').join(' or ') + ' column. Is it the items export from the Calibrate task page (one row per conversation)?' };
+      return { error: 'This file has no ' + missing.map(c => '"' + c + '"').join(' or ') + ' column, so it does not look like a Calibrate ratings file. In Calibrate, use Human alignment > your task > Dataset > Export CSV.' };
     }
     const reserved = [], original = [];
     header.forEach((h, i) => (RESERVED.test(h) ? reserved : original).push(i));
@@ -293,12 +293,13 @@
       });
       return { idx: n + 1, row: it.row, id: it.id, rawId: it.rawId, description: it.description, transcript: it.transcript, ratings, comments: it.comments };
     });
-    if (det.unmatched.length) warnings.push(det.unmatched.length + ' rating column(s) could not be matched to a rater and question and are ignored (e.g. ' + det.unmatched.slice(0, 2).join(', ') + ').');
-    if (unknown.length) warnings.push(unknown.length + ' answer(s) did not match any answer option and are shown as they appear in the file.');
+    const n = det.unmatched.length;
+    if (n) warnings.push('The page could not tell whose answers are in ' + (n === 1 ? '1 column' : n + ' columns') + ', so ' + (n === 1 ? 'it is' : 'they are') + ' left out (for example ' + det.unmatched.slice(0, 2).join(', ') + ').');
+    if (unknown.length) warnings.push((unknown.length === 1 ? '1 answer does' : unknown.length + ' answers do') + ' not match any answer option. They are shown exactly as they appear in the file.');
     const badTranscripts = extracted.items.filter(it => !it.transcriptOk).length;
-    if (badTranscripts) warnings.push(badTranscripts + ' conversation(s) have a transcript that is not valid JSON (was the CSV saved from a spreadsheet, which cuts long cells?). They are shown as raw text.');
+    if (badTranscripts) warnings.push((badTranscripts === 1 ? '1 conversation has' : badTranscripts + ' conversations have') + ' a damaged transcript, so it is shown as plain text. This usually happens when the CSV was opened and saved in a spreadsheet, which cuts off very long cells.');
     const ids = conversations.map(c => c.id);
-    if (new Set(ids).size !== ids.length) warnings.push('Some conversation ids repeat; consensus notes are matched by row instead.');
+    if (new Set(ids).size !== ids.length) warnings.push('Some conversation IDs appear more than once, so notes are matched to rows instead of IDs.');
     const title = settings.title || titleFromFile(fileName);
     return {
       meta: {
@@ -314,10 +315,10 @@
   // One call for the common path: CSV text -> context (everything except answer names).
   function read(text, fileName, opts) {
     const parsed = CD.csv.parse(text);
-    if (parsed.rows.length < 2) return { error: 'This file has no data rows.' };
+    if (parsed.rows.length < 2) return { error: 'This file has a header row but no conversations.' };
     const det = detect(parsed.rows[0], opts);
     if (det.error) return { error: det.error };
-    if (!det.questions.length) return { error: 'No rating columns were found (columns ending in “/value”). Is this the items export from a Calibrate annotation task?' };
+    if (!det.questions.length) return { error: 'This file has no ratings in it (no columns ending in "/value"). Download it again with Export CSV on the task\'s Dataset tab, after the experts have rated.' };
     const extracted = extract(parsed, det);
     return { parsed, det, extracted, fileName, fp: fingerprint(parsed, det) };
   }

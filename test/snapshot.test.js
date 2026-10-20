@@ -29,5 +29,5 @@ test('short passwords are refused', async () => {
 });
 
 test('a copy cannot be made from a page without the preload marker', () => {
-  assert.throws(() => CD.snapshot.snapshotHtml('<html></html>', {}), /itself a copy/);
+  assert.throws(() => CD.snapshot.snapshotHtml('<html></html>', {}), /already a locked copy/);
 });

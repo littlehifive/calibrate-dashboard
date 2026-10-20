@@ -27,6 +27,20 @@
     units.forEach(u => { const x = u[a], y = u[b]; if (x != null && y != null) { both++; if (x === y) same++; } });
     return both ? { rate: same / both, same, both } : null;
   }
+  // Cohen's kappa for two raters over the units both answered; null when chance agreement is 100%.
+  function cohenKappa(units, a, b) {
+    const ca = {}, cb = {}; let same = 0, both = 0;
+    units.forEach(u => {
+      const x = u[a], y = u[b]; if (x == null || y == null) return;
+      both++; if (x === y) same++;
+      ca[x] = (ca[x] || 0) + 1; cb[y] = (cb[y] || 0) + 1;
+    });
+    if (!both) return null;
+    const po = same / both;
+    let pe = 0; Object.keys(ca).forEach(c => { pe += (ca[c] / both) * ((cb[c] || 0) / both); });
+    if (pe >= 1) return null;
+    return { kappa: (po - pe) / (1 - pe), po, pe, same, both };
+  }
   function pairAgreement(units, keys) {
     let tot = 0, cnt = 0;
     for (let i = 0; i < keys.length; i++) for (let j = i + 1; j < keys.length; j++) {
@@ -89,40 +103,70 @@
       const hKeys = HUMANS.map(r => r.key), allKeys = R.map(r => r.key);
       let uN = 0, uY = 0;
       units.forEach(u => { const v = hKeys.map(k => u[k]).filter(x => x != null); if (v.length >= 2) { uN++; if (new Set(v).size === 1) uY++; } });
-      let aN = 0, aY = 0;
-      if (AI) C.forEach(c => { const h = analyze(c, q, HUMANS); const a = lab(q, raw(c, q, AI).label); if (h.majority != null && a != null) { aN++; if (a === h.majority) aY++; } });
+      let aN = 0, aY = 0, aTie = 0, aThin = 0, aMissing = 0;
+      if (AI) C.forEach(c => {
+        const h = analyze(c, q, HUMANS); const a = lab(q, raw(c, q, AI).label);
+        if (h.status === 'split') aTie++; else if (h.status === 'thin') aThin++; else if (a == null) aMissing++;
+        else { aN++; if (a === h.majority) aY++; }
+      });
       const cells = C.map(c => cell(c, q));
+      const pairs = [];
+      for (let i = 0; i < hKeys.length; i++) for (let j = i + 1; j < hKeys.length; j++) {
+        const p = pairRate(units, hKeys[i], hKeys[j]); if (p) pairs.push({ a: hKeys[i], b: hKeys[j], rate: p.rate });
+      }
+      pairs.sort((x, y) => x.rate - y.rate);
       return {
-        unanimous: uN ? uY / uN : null, uN, uY,
-        pairH: pairAgreement(units, hKeys), alphaH: krippAlpha(units, hKeys),
-        aiMaj: aN ? aY / aN : null, aN, aY,
+        unanimous: uN ? uY / uN : null, uN, uY, uThin: C.length - uN,
+        pairH: pairAgreement(units, hKeys), pairs, alphaH: krippAlpha(units, hKeys),
+        aiMaj: aN ? aY / aN : null, aN, aY, aTie, aThin, aMissing,
         alphaAll: AI ? krippAlpha(units, allKeys) : null,
         splits: cells.filter(x => x.status === 'split').length,
         thin: cells.filter(x => x.status === 'thin').length,
         answered: R.map(r => units.filter(u => u[r.key] != null).length),
       };
     }
+    // k of n off the majority, plus why the other conversations were not counted.
     function raterDisagreements(r, q) {
-      let k = 0, n = 0;
-      C.forEach(c => { const a = cell(c, q); if (a.majority != null && a.labels[r.key] != null) { n++; if (a.dis.includes(r.key)) k++; } });
-      return { k, n };
+      let k = 0, n = 0, ties = 0, thin = 0, skipped = 0;
+      C.forEach(c => {
+        const a = cell(c, q);
+        if (a.status === 'split') ties++;
+        else if (a.status === 'thin') thin++;
+        else if (a.labels[r.key] == null) skipped++;
+        else { n++; if (a.dis.includes(r.key)) k++; }
+      });
+      return { k, n, ties, thin, skipped, total: C.length };
     }
     function convScore(c) {
       let dis = 0, splits = 0, ai = 0;
       Q.forEach(q => { const a = cell(c, q); dis += a.dis.length; if (a.status === 'split') splits++; if (a.aiDis) ai++; });
       return { dis, splits, ai, total: dis + 2 * splits };
     }
-    const isConflict = a => a.status === 'split' || a.status === 'disagree';
+    // Something to discuss: a tie, or someone counted in the majority (the reference raters) off it.
+    // With "Experts only", the AI disagreeing on its own is not a conflict between the experts.
+    const isConflict = a => a.status === 'split' || (st().ref === 'all' ? a.dis.length > 0 : a.humanDis.length > 0);
     function hasConflict(c) { return Q.some(q => isConflict(cell(c, q))); }
+    // Headline numbers for the KPI row.
+    function kpis() {
+      const stats = Q.map(q => ({ q, s: qStats(q) }));
+      const ai = stats.filter(x => x.q.hasAI && x.q.aiMapped);
+      const aiY = ai.reduce((t, x) => t + x.s.aY, 0), aiN = ai.reduce((t, x) => t + x.s.aN, 0);
+      return {
+        conflicts: C.filter(hasConflict),
+        reliable: stats.filter(x => x.s.alphaH != null && x.s.alphaH >= 0.8).length,
+        withAlpha: stats.filter(x => x.s.alphaH != null).length,
+        aiY, aiN, aiRate: aiN ? aiY / aiN : null, stats,
+      };
+    }
 
     return {
       Q, R, C, HUMANS, AI, raw, lab, groupable, notLabel, refRaters, analyze, cell, humanCell, unitsFor, qStats,
-      raterDisagreements, convScore, isConflict, hasConflict, pairRate, pairAgreement, krippAlpha,
+      raterDisagreements, convScore, isConflict, hasConflict, kpis, pairRate, pairAgreement, krippAlpha, cohenKappa,
       clear() { cache.clear(); },
     };
   }
 
-  const api = { create, krippAlpha, pairRate, pairAgreement };
+  const api = { create, krippAlpha, pairRate, pairAgreement, cohenKappa };
   CD.metrics = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -24,7 +24,7 @@ test('sniffs semicolon and tab delimiters', () => {
 });
 
 test('rejects an unterminated quote', () => {
-  assert.throws(() => CD.csv.parse('a,b\n"1,2\n'), /ends inside a quoted field/);
+  assert.throws(() => CD.csv.parse('a,b\n"1,2\n'), /middle of a quoted cell/);
 });
 
 test('rebuild copies the original text and appends columns', () => {

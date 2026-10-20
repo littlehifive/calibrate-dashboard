@@ -41,7 +41,7 @@
   // evaluators.json as the calibrate-workshop skill writes it: a list, or {"evaluators": [...]}.
   function readSpecs(json) {
     const list = Array.isArray(json) ? json : (json && Array.isArray(json.evaluators) ? json.evaluators : null);
-    if (!list || !list.every(s => s && typeof s.name === 'string')) throw new Error('This JSON is not an evaluator list (expected objects with a "name" and a "scale").');
+    if (!list || !list.every(s => s && typeof s.name === 'string')) throw new Error('This is not a question definitions file. It should be a list of questions, each with a "name" and a "scale".');
     return list;
   }
   // Exact column key first; then a spec without the workshop prefix ("Accurate" for W4_-_Accurate).

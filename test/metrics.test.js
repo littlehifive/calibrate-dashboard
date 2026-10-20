@@ -55,3 +55,26 @@ test('no AI rater: AI statistics are empty, not errors', () => {
   const s = m.qStats(model.questions[0]);
   assert.equal(s.aiMaj, null); assert.equal(s.alphaAll, null);
 });
+
+test("Cohen's kappa on a hand-worked 2x2 example", () => {
+  // 10 items: both Yes 4, both No 3, A Yes / B No 2, A No / B Yes 1.
+  // p_o = 0.7; A Yes 0.6, B Yes 0.5; p_e = 0.6*0.5 + 0.4*0.5 = 0.5; kappa = 0.2 / 0.5 = 0.4
+  const pairs = [...Array(4).fill(['Y', 'Y']), ...Array(3).fill(['N', 'N']), ...Array(2).fill(['Y', 'N']), ['N', 'Y']];
+  const units = pairs.map(([a, b]) => ({ a, b }));
+  const k = CD.metrics.cohenKappa(units, 'a', 'b');
+  assert.equal(k.po, 0.7); assert.equal(k.pe, 0.5); assert.equal(k.kappa.toFixed(3), '0.400');
+  assert.equal(CD.metrics.cohenKappa([{ a: 'Y', b: 'Y' }, { a: 'Y', b: 'Y' }], 'a', 'b'), null); // chance agreement is 100%
+});
+
+test('every conversation is accounted for in the off-majority breakdown', () => {
+  const model = tiny();
+  const m = CD.metrics.create(model, () => ({ ref: 'humans', cat: 'strict' }));
+  model.raters.forEach(r => {
+    const d = m.raterDisagreements(r, model.questions[0]);
+    assert.equal(d.n + d.ties + d.thin + d.skipped, model.conversations.length, r.key);
+  });
+  const c = m.raterDisagreements(model.raters[2], model.questions[0]); // rater c skipped conversation 3 (a tie anyway) and 4 (thin)
+  assert.deepEqual([c.k, c.n, c.ties, c.thin, c.skipped], [1, 3, 1, 1, 0]);
+  const s = m.qStats(model.questions[0]);
+  assert.deepEqual([s.aY, s.aN, s.aTie, s.aThin, s.aMissing], [1, 3, 1, 1, 0]);
+});

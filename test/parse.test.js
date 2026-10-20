@@ -91,7 +91,7 @@ test('a mapping saved in the browser wins over presets', () => {
 });
 
 test('reports a file that is not an items export', () => {
-  assert.match(CD.parse.read('chat_id,text\n1,hi', 'x.csv').error, /no “name” or “conversation_history” column/);
+  assert.match(CD.parse.read('chat_id,text\n1,hi', 'x.csv').error, /no "name" or "conversation_history" column/);
 });
 
 test('short names: " - " prefix or a shared word prefix', () => {

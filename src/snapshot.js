@@ -16,7 +16,7 @@
   const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
   const subtle = () => {
     const c = root.crypto;
-    if (!c || !c.subtle) throw new Error('This browser cannot encrypt here (the page must be opened over https or from a file).');
+    if (!c || !c.subtle) throw new Error('This browser cannot lock files here. Open the page from its https address or from a saved copy.');
     return c.subtle;
   };
 
@@ -25,7 +25,7 @@
     return subtle().deriveKey({ name: 'PBKDF2', salt, iterations, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, [usage]);
   }
   async function encrypt(plaintext, password) {
-    if (String(password).length < MIN_PASSWORD) throw new Error('Use a password of at least ' + MIN_PASSWORD + ' characters (a short phrase works well).');
+    if (String(password).length < MIN_PASSWORD) throw new Error('Use a password of at least ' + MIN_PASSWORD + ' characters. A short phrase is easiest to remember.');
     const salt = root.crypto.getRandomValues(new Uint8Array(16));
     const iv = root.crypto.getRandomValues(new Uint8Array(12));
     const key = await deriveKey(password, salt, ITERATIONS, 'encrypt');
@@ -41,7 +41,7 @@
 
   // The page as captured at startup, with the data embedded so it opens straight into the dashboard.
   function snapshotHtml(appHtml, preload) {
-    if (!appHtml.includes(PRELOAD_MARK)) throw new Error('This copy of the page cannot make protected copies (it is itself a copy).');
+    if (!appHtml.includes(PRELOAD_MARK)) throw new Error('This is already a locked copy, so it cannot make another one.');
     const json = JSON.stringify(preload).replace(/</g, '\\u003c');
     return appHtml.replace(PRELOAD_MARK, () => '<script type="application/json" id="preload">' + json + '<\/script>');
   }

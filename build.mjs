@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const src = f => readFileSync(join(root, 'src', f), 'utf8');
-const MODULES = ['csv.js', 'parse.js', 'scales.js', 'metrics.js', 'consensus.js', 'snapshot.js', 'demo.js', 'dashboard.js', 'app.js'];
+const MODULES = ['csv.js', 'parse.js', 'scales.js', 'metrics.js', 'consensus.js', 'snapshot.js', 'demo.js', 'defs.js', 'dashboard.js', 'app.js'];
 
 const js = MODULES.map(f => '// ---- ' + f + ' ----\n' + src(f)).join('\n');
 if (/<\/script/i.test(js) || /<!--/.test(js)) throw new Error('A script contains "</script" or "<!--", which would break the inline <script> element.');

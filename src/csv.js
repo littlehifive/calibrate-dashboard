@@ -34,7 +34,7 @@
           let buf = '', seg = ++i;
           for (;;) {
             const q = text.indexOf('"', i);
-            if (q === -1) throw new Error('The file ends inside a quoted field (opened at character ' + start + '). Is it a complete CSV export?');
+            if (q === -1) throw new Error('The file seems to be cut off: it ends in the middle of a quoted cell (from character ' + start + '). Try downloading it again.');
             if (text[q + 1] === '"') { buf += text.slice(seg, q + 1); i = q + 2; seg = i; continue; }
             buf += text.slice(seg, q); i = q + 1; break;
           }

@@ -5,9 +5,9 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="description" content="Turn a Calibrate annotation export into a rater-agreement dashboard and record the experts' consensus. Runs entirely in your browser.">
+<meta name="description" content="Open the ratings file from a Calibrate labeling task to see where your experts agreed and disagreed, and write down what the group decides. Everything stays in your browser.">
 <link rel="icon" href="data:,">
-<title>Calibrate Agreement Review</title>
+<title>Agreement review</title>
 <style>
 /*__CSS__*/
 </style>
@@ -17,77 +17,138 @@
 <div id="start" class="start">
   <div class="start-card">
     <div>
-      <div class="eyebrow">Calibrate · expert review</div>
-      <h1>Agreement review</h1>
-      <p class="lede">Turn the items CSV from a Calibrate annotation task into a rater-agreement dashboard, then record what the experts decide about each conflict.</p>
+      <div class="eyebrow">Calibrate expert review</div>
+      <h1>See where your experts agreed and disagreed</h1>
+      <p class="lede">Open the ratings file from a Calibrate labeling task. The page shows how often the experts agreed and puts each conversation next to its ratings, with room to write down what the group decides.</p>
     </div>
-    <label class="drop" id="drop" tabindex="0">
-      <b>Drop the items CSV here, or click to choose it</b>
-      <span class="muted">Add the task’s <span class="mono">evaluators.json</span> too if you have it (optional). To continue earlier notes, drop the CSV you downloaded from this page.</span>
-      <input id="file" type="file" accept=".csv,.json,text/csv,application/json" multiple hidden>
-    </label>
-    <div id="start-error" class="err" role="alert" hidden></div>
+
+    <section class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h2>Download the ratings from Calibrate</h2>
+        <ol class="how">
+          <li>In the left menu, click <b>Human alignment</b> and open your labeling task.</li>
+          <li>Go to the <b>Dataset</b> tab.</li>
+          <li>Click <b>Export CSV</b>, above the list on the right. Your browser saves a file ending in <span class="mono">-items.csv</span>.</li>
+        </ol>
+        <figure class="cal" aria-label="Where to click in Calibrate: Human alignment, then the Dataset tab, then Export CSV">
+          <div class="cal-win" aria-hidden="true">
+            <div class="cal-side">
+              <div class="cal-logo"><i></i>Calibrate</div>
+              <div class="cal-item">Agents</div>
+              <div class="cal-item">Evaluators</div>
+              <div class="cal-item on cal-ring">Human alignment<span class="cal-mark">1</span></div>
+              <div class="cal-item dim">Voice evaluation</div>
+              <div class="cal-item dim">Agent simulations</div>
+            </div>
+            <div class="cal-main">
+              <div class="cal-title">Your labeling task</div>
+              <div class="cal-tabs"><span>Overview</span><span class="on cal-ring">Dataset<span class="cal-mark">2</span></span><span>Labelling jobs</span><span>Evaluation runs</span></div>
+              <div class="cal-tools">
+                <span class="cal-search">Search by name</span>
+                <span class="cal-export cal-ring"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0-3-3m3 3 3-3M3 12.5v1h10v-1"/></svg>Export CSV<span class="cal-mark">3</span></span>
+              </div>
+              <div class="cal-rows"><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <figcaption>A simplified drawing of the Calibrate pages. The numbers match the steps above.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h2>Open that file here</h2>
+        <label class="drop" id="drop" tabindex="0">
+          <b>Drag the CSV file here, or click to choose it</b>
+          <span class="muted">It is the file you just downloaded, usually in your Downloads folder.</span>
+          <input id="file" type="file" accept=".csv,.json,text/csv,application/json" multiple hidden>
+        </label>
+        <div id="start-error" class="err" role="alert" hidden></div>
+        <p class="hint">Picking up where you left off? Open the CSV you downloaded from this page last time. Your notes come back with it.</p>
+      </div>
+    </section>
+
+    <section class="howto" aria-labelledby="howto-title">
+      <h2 id="howto-title">How this page works</h2>
+      <div class="howto-grid">
+        <div>
+          <h3>Where do I open it?</h3>
+          <p>Bookmark <a href="https://littlehifive.github.io/calibrate-dashboard/" target="_blank" rel="noopener">littlehifive.github.io/calibrate-dashboard</a> and open it whenever you need it. It is an ordinary web page, so there is nothing to install and no account. It is online, but your file is read on your own computer and never sent anywhere.</p>
+          <p>Prefer a copy on your computer, or working without internet? Save this page (Ctrl+S, or Cmd+S on a Mac) and double-click the saved file to open it. It works the same way.</p>
+        </div>
+        <div>
+          <h3>More than one project?</h3>
+          <p>The page does not keep a list of projects. Each project is simply its own CSV file. Open the file for the project you are working on, and use ⋯ &gt; Open a different file to switch.</p>
+          <p>A folder per project keeps things tidy: put the file from Calibrate in it, and save each download from this page next to it.</p>
+        </div>
+        <div>
+          <h3>Where are my notes kept?</h3>
+          <p>While you work, notes are saved in this browser, so closing the tab by accident loses nothing. The lasting record is the CSV you download on step 3.</p>
+          <p>Next time, open that downloaded file rather than the original from Calibrate, and your decisions come back. To hand the work to someone else, send them that file.</p>
+        </div>
+        <div>
+          <h3>Sharing with the other experts?</h3>
+          <p>Send them this page's address and the CSV, so they can look through it on their own computer. Or use ⋯ &gt; Share a password-protected copy: one read-only file they can open without the CSV.</p>
+        </div>
+      </div>
+    </section>
+
     <div class="privacy">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1a4 4 0 0 0-4 4v2H3.5A1.5 1.5 0 0 0 2 8.5v5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 12.5 7H12V5a4 4 0 0 0-4-4Zm-2.5 6V5a2.5 2.5 0 0 1 5 0v2h-5Z"/></svg>
-      <span>The file is read inside this browser and never uploaded. This page is not allowed to connect to the internet at all, so conversations stay on your computer.</span>
+      <span>Your file stays on this computer. The page reads it inside your browser and has no way to send it anywhere.</span>
     </div>
-    <ol class="steps">
-      <li>In Calibrate, open the annotation task and download the items export (one row per conversation).</li>
-      <li>Drop it above. The raters, questions and AI evaluator are found from the column names.</li>
-      <li>Review the conflicts together. One person records the consensus in each conversation.</li>
-      <li>Download the CSV with consensus: the original file plus consensus columns. Share a read-only view as a password-protected file.</li>
-    </ol>
-    <div class="actions"><button class="btn" id="demo" type="button">Try it with invented data</button></div>
-    <p class="start-foot">Works offline: save this page (Ctrl/Cmd+S) and open the file later.</p>
+    <p class="start-foot"><button class="linkbtn" id="demo" type="button">Try it with made-up data</button> &nbsp;·&nbsp; Works offline too: save this page with Ctrl+S (Cmd+S on a Mac) and open the saved copy.</p>
   </div>
 </div>
 
 <div id="app" hidden>
-  <header class="topbar">
+  <header class="appbar" id="appbar">
     <div class="wrap">
-      <div class="title-block">
-        <h1 id="title"></h1>
+      <div class="brand">
+        <div class="line1"><span class="app-name">Agreement review</span><h1 id="title"></h1><span class="ro-tag" id="ro-tag" hidden>Read-only copy</span></div>
         <div class="sub" id="subtitle"></div>
       </div>
-      <div class="actions" id="actions">
-        <span class="ro-tag" id="ro-tag" hidden>Read-only copy</span>
-        <button class="btn primary" id="act-download" type="button" title="The original CSV plus consensus columns">Download CSV<span class="count" id="pending" hidden></span></button>
-        <button class="btn" id="act-protect" type="button" title="A read-only, password-protected copy to share">Protected copy</button>
-        <button class="btn" id="act-setup" type="button" title="Names of raters, questions and answer options">Setup</button>
-        <button class="btn" id="act-open" type="button">Open another file</button>
-      </div>
-    </div>
-    <div class="wrap" style="margin-top:8px">
-      <div class="tabs" role="tablist">
-        <button role="tab" id="tab-overview" aria-selected="true" data-tab="overview">Agreement overview</button>
-        <button role="tab" id="tab-conversations" aria-selected="false" data-tab="conversations">Conversations</button>
-        <button role="tab" id="tab-consensus" aria-selected="false" data-tab="consensus">Consensus</button>
-      </div>
-      <div class="controls">
-        <div class="control" id="ref-control" title="Which raters form the majority a rating is compared against">
-          <span>Majority from</span>
-          <div class="seg" id="ref-seg">
-            <button aria-pressed="true" data-ref="humans">Humans only</button>
-            <button aria-pressed="false" data-ref="all">Humans + AI</button>
-          </div>
-        </div>
-        <div class="control" id="cat-control" title="Compare the answer options as-is, or only whether the answer was the first option">
-          <span>Options</span>
-          <div class="seg" id="cat-seg">
-            <button aria-pressed="true" data-cat="strict">As rated</button>
-            <button aria-pressed="false" data-cat="yes" id="cat-yes-btn">First option vs. rest</button>
+      <nav class="steps" role="tablist" aria-label="Steps">
+        <button role="tab" id="tab-overview" aria-selected="true" data-tab="overview"><span class="n">1</span>Overview</button>
+        <button role="tab" id="tab-conversations" aria-selected="false" data-tab="conversations"><span class="n">2</span>Review conversations</button>
+        <button role="tab" id="tab-consensus" aria-selected="false" data-tab="consensus"><span class="n">3</span>Consensus &amp; download</button>
+      </nav>
+      <div class="bar-actions">
+        <button class="changes" id="changes" type="button"><span id="changes-text">No decisions yet</span><span class="go">→</span></button>
+        <div class="menu-wrap">
+          <button class="btn icon" id="menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" aria-label="More actions">⋯</button>
+          <div class="menu" id="menu" role="menu" hidden>
+            <button role="menuitem" type="button" data-act="protect" class="edit-only">Share a password-protected copy<small>A read-only file for experts who don't have the CSV</small></button>
+            <button role="menuitem" type="button" data-act="setup" class="edit-only">Rename experts and answers<small>Change names, or name answer options</small></button>
+            <button role="menuitem" type="button" data-act="open" class="edit-only">Open a different file<small>Switch to another project's CSV</small></button>
           </div>
         </div>
       </div>
     </div>
   </header>
+  <div class="wrap settings" id="settings">
+    <label id="ref-control">Majority from
+      <select id="ref-sel"><option value="humans">Experts only</option><option value="all">Experts + AI</option></select>
+    </label>
+    <label id="cat-control">Answers
+      <select id="cat-sel"><option value="strict">As chosen</option><option value="yes" id="cat-yes-opt">Yes vs. anything else</option></select>
+    </label>
+    <button class="info" type="button" data-def="settings" aria-label="What these settings do">i</button>
+  </div>
   <div class="wrap banners" id="banners"></div>
   <main class="wrap">
     <div id="view-overview"></div>
-    <div id="view-conversations" hidden>
-      <div class="convs">
-        <section class="panel convlist" id="convlist"></section>
-        <div class="detail" id="detail"></div>
+    <div id="view-conversations" class="review" hidden>
+      <section class="convlist" id="convlist" aria-label="Conversations"></section>
+      <div class="review-main">
+        <div class="dbar" id="dbar"></div>
+        <div class="panes">
+          <section class="pane" id="pane-transcript" aria-label="Transcript"></section>
+          <section class="pane" id="pane-ratings" aria-label="Ratings"></section>
+          <section class="pane cons" id="pane-consensus" aria-label="Consensus"></section>
+        </div>
       </div>
     </div>
     <div id="view-consensus" hidden></div>
@@ -95,21 +156,23 @@
   </main>
 </div>
 <div id="tip" hidden></div>
+<div id="pop" role="dialog" aria-modal="false" hidden></div>
 
 <dialog id="dlg-protect">
   <form method="dialog" id="protect-form">
-    <h2>Password-protected copy</h2>
-    <p>Saves one HTML file with this dashboard and the consensus notes, read-only, encrypted with a password. Share it through a restricted folder; people download it and open it in a browser. Send the password through a different channel.</p>
-    <label>Password (at least 10 characters; a short phrase works well)
+    <h2>Share a password-protected copy</h2>
+    <p>This saves one file with the dashboard and your consensus notes. It is read-only and locked with a password. Put it in a shared folder that only the experts can open; they download it and open it in their browser.</p>
+    <p>Send the password separately, for example in a message rather than the same email.</p>
+    <label>Password (at least 10 characters; a short phrase is easiest)
       <input id="pw1" type="password" autocomplete="new-password" minlength="10" required>
     </label>
-    <label>Repeat the password
+    <label>Type it again
       <input id="pw2" type="password" autocomplete="new-password" minlength="10" required>
     </label>
     <div id="protect-status" class="muted" role="status" aria-live="polite"></div>
     <div class="row">
       <button class="btn" value="cancel" formnovalidate type="submit">Cancel</button>
-      <button class="btn primary" id="protect-go" value="go" type="submit">Encrypt and download</button>
+      <button class="btn primary" id="protect-go" value="go" type="submit">Lock and download</button>
     </div>
   </form>
 </dialog>
